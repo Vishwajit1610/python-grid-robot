@@ -53,29 +53,43 @@ grid = [['R', '□', '□', '□', '□', '□', '□', '□'],
 
 print_grid()
 
-
 robot_row = 0
 robot_col = 0 
 
-move_direction = 'right'
+moves = ['right', 'down', 'down', 'right', 'down', 'right', 'down', 'down', 'down']
 
-next_row, next_col = calculate_new_position(robot_row, robot_col, move_direction)
+goal_reached = False
 
-is_valid = is_move_valid(next_row, next_col)
+for move in moves:
+    
+    move_direction = move
 
-print(next_row, next_col)
+    next_row, next_col = calculate_new_position(robot_row, robot_col, move_direction)
 
-print(is_valid)
+    is_valid = is_move_valid(next_row, next_col)
 
-if (is_valid):
-    grid[robot_row][robot_col] = '□'
+    print(next_row, next_col)
 
-    robot_row = next_row
-    robot_col = next_col
+    print(is_valid)
 
-    grid[robot_row][robot_col] = 'R'
+    if (is_valid):
 
-    print_grid()
+        grid[robot_row][robot_col] = '□'
+
+        robot_row = next_row
+        robot_col = next_col
+
+        if (grid[next_row][next_col] == 'G'):
+            goal_reached = True
+            
+
+        grid[robot_row][robot_col] = 'R'
+
+        print_grid()
+
+    if (goal_reached):
+        print("You have reached the goal!")
+        break
 
 
 

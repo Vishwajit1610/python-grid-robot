@@ -1,3 +1,5 @@
+import heapq as hq
+
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
@@ -44,6 +46,19 @@ def is_move_valid(new_row, new_col):
     return True
 
 
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+def reconstruct__path(came_from, current):
+    total_path = [current]
+
+    while (current in came_from):
+
+        current = came_from[current]
+        total_path.insert(0, current)
+
+    return total_path
+
 # ==============================================================================
 # Main Execution
 # ==============================================================================
@@ -55,55 +70,80 @@ grid = [['R', '□', '□', '□', '□', '□', '□', '□'],
         ['□', '□', '□', '□', '□', '□', '□', '□'],
         ['X', '□', '□', '□', '□', '□', '□', '□'],
         ['□', '□', '□', '□', '□', 'X', '□', '□'],
-        ['□', '□', '□', 'G', '□', '□', '□', '□'],
-        ['□', '□', '□', '□', '□', '□', '□', '□']]
+        ['□', '□', '□', '□', '□', '□', '□', '□'],
+        ['□', '□', '□', '□', '□', 'G', '□', '□']]
 
-# Initial robot state.
-robot_row = 0
-robot_col = 0 
+# Finding co-ordinates of the start and goal using enumerate loop.
+for row_index, row in enumerate(grid):
+    for col_index, col in enumerate(row):
 
-# A hardcoded list of moves to test the execution engine.
-# This will be replaced by the A* algorithm's output.
-moves = ['right', 'down', 'down', 'right', 'down', 'right', 'down', 'down', 'down']
+        if (col == 'R'):
+            start_pos = (row_index, col_index)
+        
+        if (col == 'G'):
+            goal_pos = (row_index, col_index)
 
-# State flag for graceful termination.
-# Ensures the final grid state is printed before the loop exits.
-goal_reached = False
+# List for possible directions for Robot.
+directions = ['up', 'down', 'right', 'left']
 
-print("Initial State:")
-print_grid()
-print("\nExecuting moves...")
+# ==============================================================================
+# Data Structures to manage A* Algorithm 
 
-# The main loop that processes the hardcoded move sequence.
-for move in moves:
+# Serves as Priority Queue
+open_set = []
+
+# Stores past trails to reconstruct the final path.
+came_from = {}
+
+# Stores the cost from start to any given node.
+g_score = {start_pos : 0}
+
+# ==============================================================================
+
+# Stores the score which is the manhattan distance from the start pos to the goal pos
+f_score = heuristic(start_pos, goal_pos)
+
+# Pushing the f_score and the start pos into the open_set (Priority Queue)
+hq.heappush(open_set, (f_score, start_pos))
+
+
+# print("Initial State:")
+# print_grid()
+# print("\nExecuting moves...")
+
+# Contains the A* Algorithm Engine
+while (open_set):
+    current_f_score, current_pos = hq.heappop(open_set)
     
-    next_row, next_col = calculate_new_position(robot_row, robot_col, move)
-    is_valid = is_move_valid(next_row, next_col)
+    if (current_pos == goal_pos):
+        print("Hurray! The Robot reached the Goal!!")
 
-    # For debugging:
-    print(f"Move: {move}, Next: ({next_row},{next_col}), Valid: {is_valid}")
+        final_path = reconstruct__path(came_from, current_pos)
+        print(F"Path: {final_path}")
 
-    if (is_valid):
-        # Erase the robot from its old position.
-        grid[robot_row][robot_col] = '□'
-
-        # Update the robot's state variables.
-        robot_row = next_row
-        robot_col = next_col
-
-        # Check if the new square is the goal BEFORE drawing the robot.
-        if (grid[next_row][next_col] == 'G'):
-            goal_reached = True
+        for pos in final_path:
             
-        # Draw the robot in its new position.
-        grid[robot_row][robot_col] = 'R'
+            if (pos != start_pos and pos != goal_pos):
+                grid[pos[0]][pos[1]] = '●'
+
         print_grid()
 
-    # After the move is fully processed and printed, check the flag to exit.
-    if (goal_reached):
-        print("You have reached the goal!")
         break
 
 
+    for direction in directions:
+        neighbor_pos = calculate_new_position(current_pos[0], current_pos[1], direction)
 
-    
+        if (is_move_valid(neighbor_pos[0], neighbor_pos[1])):
+
+            tentative_g_score = g_score[current_pos] + 1
+
+            if (tentative_g_score < g_score.get(neighbor_pos, float('inf'))):
+                
+                came_from[neighbor_pos] = current_pos
+                g_score[neighbor_pos] = tentative_g_score
+
+                f_score = tentative_g_score + heuristic(neighbor_pos, goal_pos)
+
+                hq.heappush(open_set, (f_score, neighbor_pos))
+

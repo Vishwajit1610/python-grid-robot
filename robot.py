@@ -1,5 +1,6 @@
 import heapq as hq
-
+import time
+ 
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
@@ -116,18 +117,31 @@ while (open_set):
     current_f_score, current_pos = hq.heappop(open_set)
     
     if (current_pos == goal_pos):
-        print("Hurray! The Robot reached the Goal!!")
 
         final_path = reconstruct__path(came_from, current_pos)
         print(F"Path: {final_path}")
+        print(f"Number of motions: {len(final_path) - 1}")
 
-        for pos in final_path:
-            
-            if (pos != start_pos and pos != goal_pos):
-                grid[pos[0]][pos[1]] = '●'
+        print("\nStarting...")
+        print_grid()  
+        print()
+        time.sleep(1.5)
 
-        print_grid()
+        # Robot Animation Code
+        for i in range(1, len(final_path)):
+            prev_pos = final_path[i - 1]
+            pos = final_path[i]
 
+            grid[prev_pos[0]][prev_pos[1]] = '●'
+
+            # Draw the robot at the new position
+            grid[pos[0]][pos[1]] = 'R'
+
+            print_grid()
+            print()
+            time.sleep(1.5)
+    
+        print("Hurray! The Robot reached the Goal!!")
         break
 
 
